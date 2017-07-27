@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>百度搜索下拉列表</title>
+	<style>
+	    #box {
+            text-align: center;
+	    }
+        img {
+        	height: 130px;
+        }
+        div {
+        	width: 566px;
+        	margin: 0 auto;
+        	position: relative;
+        }
+        input {
+        	float: left;
+        	height: 30px;
+        	width: 500px;
+        }
+        button {
+        	background: rgb(0,128,255);
+        	border: none;
+        	color: #fff;
+        	float: left;
+        	height: 34px;
+        }
+        ul {
+        	border: 1px solid #ccc;
+        	list-style: none;
+        	width: 500px;
+        	padding: 0;
+        	position: absolute;
+        	top: 20px;
+        	left: 0;
+        }
+        li {
+        	line-height: 35px;
+        }
+        li:hover {
+        	background: #eee;
+        }
+        .active {
+        	background: #eee;
+        }
+	</style>
+</head>
+<body>
+	<div id="box">
+		<img src="https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo/bd_logo1_31bdc765.png" alt="baidu-logo">
+		<div>
+			<input type="text" v-model="keyword" @keyup="get($event)" @keydown.up.prevent="prevList" @keydown.down="nextList">
+		    <button>百度一下</button>
+		    <ul v-show="myData.length!=0">
+		    	<li v-for="(item,index) in myData" :class="{active: index == nowIndex}">
+		    		{{item}}
+		    	</li>
+		    </ul>  
+		</div>
+	</div>
+
+	<script src="lib/vue.js"></script>
+	<script src="lib/vue-resource.js"></script>
+	<script>
+        window.onload = function() {
+        	new Vue({
+        		el: '#box',
+        		data: {
+                    myData: [],
+                    keyword: '',
+                    nowIndex: -1
+        		},
+        		methods: {
+                    get: function(ev) {
+                    	// 在按上下键时，输入框里面的关键字改变了但是下拉列表不会变
+                    	if(ev.keyCode == 38 || ev.keyCode == 40)return;
+                    	// 按下回车键，打开对应搜索结果网页
+                    	if(ev.keyCode == 13) {
+                    		window.open('https://www.baidu.com/s?wd=' + this.keyword);
+                    		this.keyword = '';
+                    	}
+
+                    	this.$http.jsonp('https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su',{
+                    		wd: this.keyword
+                    	},{
+                    		jsonp: 'cb'
+                    	}).then(function(res) {
+                    		this.myData = res.data.s;
+                    	},function() {
+                    		alert('fail to get message');
+                    	});
+                    },
+                    nextList: function() {
+                        this.nowIndex++;
+                        if(this.nowIndex == this.myData.length) {
+                        	this.nowIndex = -1;
+                        }
+                        this.keyword = this.myData[this.nowIndex];
+                    },
+                    prevList: function() {
+                    	this.nowIndex--;
+                    	if(this.nowIndex == -2) {
+                    		this.nowIndex = this.myData.length - 1;
+                    	}
+                    	this.keyword = this.myData[this.nowIndex];
+                    }
+        		}
+        	});
+        }
+	</script>
+</body>
+</html>
